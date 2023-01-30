@@ -44,4 +44,8 @@ public class TaskDto {
     public void setStatus(String status) {
         this.status = status;
     }
+
+    public Task toEntity(){
+        return new Task(Long.parseLong(this.id), this.title, this.description, Status.valueOf(this.status));
+    }
 }
