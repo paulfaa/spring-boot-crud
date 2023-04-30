@@ -7,6 +7,8 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
+import java.util.ArrayList;
+import java.util.List;
 
 
 @RestController
@@ -15,6 +17,9 @@ public class TaskController {
 
     @Autowired
     private TaskServiceImpl taskService;
+
+    //@Autowired
+    //private TaskRepository taskRepository;
 
     @PostMapping("/tasks")
     public ResponseEntity<TaskDto> create(@RequestBody TaskDto taskDto) {
@@ -40,9 +45,13 @@ public class TaskController {
         return new ResponseEntity<>(HttpStatus.NO_CONTENT);
     }
 
-    /*@GetMapping("/tasks")
-    public ResponseEntity<TaskDto> getAll(){
-        Task task = taskService.getAllTasks();
-        return new ResponseEntity<>(task.toDto(), HttpStatus.OK);
-    }*/
+    @GetMapping("/tasks")
+    public List<TaskDto> getAll(){
+        Iterable<Task> tasks = taskService.getAllTasks();
+        List<TaskDto> list = new ArrayList<>();
+        while(tasks.iterator().hasNext()){
+            list.add(tasks.iterator().next().toDto());
+        }
+        return list;
+    }
 }

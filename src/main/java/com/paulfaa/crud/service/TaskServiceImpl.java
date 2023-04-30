@@ -4,9 +4,7 @@ import com.paulfaa.crud.entity.Task;
 import com.paulfaa.crud.repository.TaskRepository;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-
 import java.util.Optional;
-
 
 @Service
 public class TaskServiceImpl implements TaskService {
