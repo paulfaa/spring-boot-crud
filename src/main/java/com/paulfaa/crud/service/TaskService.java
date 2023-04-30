@@ -2,7 +2,6 @@ package com.paulfaa.crud.service;
 
 import com.paulfaa.crud.entity.Task;
 
-
 public interface TaskService {
 
     Iterable<Task> getAllTasks();
