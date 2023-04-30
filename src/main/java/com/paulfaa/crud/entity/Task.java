@@ -1,6 +1,8 @@
 package com.paulfaa.crud.entity;
 
+import org.springframework.data.annotation.Id;
 public class Task {
+    @Id
     private Long id;
     private String title;
     private String description;
