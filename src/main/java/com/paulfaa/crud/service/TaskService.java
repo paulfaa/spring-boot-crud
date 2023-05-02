@@ -2,6 +2,8 @@ package com.paulfaa.crud.service;
 
 import com.paulfaa.crud.entity.Task;
 
+import java.util.Optional;
+
 public interface TaskService {
 
     Iterable<Task> getAllTasks();
@@ -12,7 +14,7 @@ public interface TaskService {
 
     Task updateTask(Long id, Task task) throws Exception;
 
-    boolean hasTask(Long id);
+    Optional<Task> findById(Long id);
 
     void deleteTask(Long id);
 }

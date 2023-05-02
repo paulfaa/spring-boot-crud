@@ -37,8 +37,8 @@ public class TaskServiceImpl implements TaskService {
         }
     }
     @Override
-    public boolean hasTask(Long id){
-        return taskRepository.existsById(id);
+    public Optional<Task> findById(Long id){
+        return taskRepository.findById(id);
     }
 
     @Override

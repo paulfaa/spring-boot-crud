@@ -12,6 +12,7 @@ import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
 import java.util.List;
+import java.util.Optional;
 import java.util.stream.Collectors;
 
 import static com.paulfaa.crud.util.Util.findStatusByName;
@@ -38,30 +39,36 @@ public class TaskController {
 
     @GetMapping("/tasks/{id}")
     public ResponseEntity<TaskDto> get(@PathVariable long id) {
-        Task task = taskService.getTaskById(id);
-        return new ResponseEntity<>(task.toDto(), HttpStatus.OK);
+        Optional<Task> optional = taskService.findById(id);
+        return optional.map(task -> new ResponseEntity<>(task.toDto(), HttpStatus.OK)).orElseGet(() -> new ResponseEntity<>(HttpStatus.NO_CONTENT));
     }
 
     @PutMapping("/tasks/{id}")
     public ResponseEntity<String> update(@PathVariable long id, @RequestBody TaskDto taskDto) throws Exception {
-        if (!taskService.hasTask(id)) {
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
-        }
         if (findStatusByName(taskDto.getStatus()) == null) {
             return new ResponseEntity<>("Available statuses are: CREATED, APPROVED, REJECTED, BLOCKED, DONE", HttpStatus.BAD_REQUEST);
         }
-        taskDto.setId(String.valueOf(id));
-        taskService.updateTask(id, taskDto.toEntity());
-        return new ResponseEntity<>(HttpStatus.OK);
+        Optional<Task> optional = taskService.findById(id);
+        if(optional.isEmpty()){
+            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+        }
+        else{
+            taskDto.setId(String.valueOf(id));
+            taskService.updateTask(id, taskDto.toEntity());
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
     }
 
     @DeleteMapping("/tasks/{id}")
     public ResponseEntity<Void> delete(@PathVariable long id) {
-        if (!taskService.hasTask(id)) {
+        Optional<Task> optional = taskService.findById(id);
+        if(optional.isEmpty()){
             return new ResponseEntity<>(HttpStatus.NOT_FOUND);
         }
-        taskService.deleteTask(id);
-        return new ResponseEntity<>(HttpStatus.OK);
+        else{
+            taskService.deleteTask(id);
+            return new ResponseEntity<>(HttpStatus.OK);
+        }
     }
 
     @GetMapping("/tasks")
