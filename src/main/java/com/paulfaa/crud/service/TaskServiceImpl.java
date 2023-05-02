@@ -36,6 +36,10 @@ public class TaskServiceImpl implements TaskService {
             throw new Exception("Task with id " + id + " does not exist");
         }
     }
+    @Override
+    public boolean hasTask(Long id){
+        return taskRepository.existsById(id);
+    }
 
     @Override
     public void deleteTask(Long id) {

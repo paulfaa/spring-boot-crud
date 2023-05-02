@@ -12,7 +12,8 @@ public interface TaskService {
 
     Task updateTask(Long id, Task task) throws Exception;
 
-    void deleteTask(Long id);
+    boolean hasTask(Long id);
 
+    void deleteTask(Long id);
 }
 
