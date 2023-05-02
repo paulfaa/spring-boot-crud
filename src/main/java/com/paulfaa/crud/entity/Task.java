@@ -1,12 +1,22 @@
 package com.paulfaa.crud.entity;
 
-import org.springframework.data.annotation.Id;
+import javax.persistence.Id;
+import javax.persistence.Entity;
+import javax.persistence.GeneratedValue;
+import javax.persistence.GenerationType;
+
+@Entity
 public class Task {
     @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
     private Long id;
     private String title;
     private String description;
     private Status status;
+
+    public Task() {
+        super();
+    }
 
     public Task(Long id, String title, String description, Status status) {
         this.id = id;

@@ -1,7 +1,9 @@
 package com.paulfaa.crud.controller;
 
+import com.paulfaa.crud.entity.Status;
 import com.paulfaa.crud.entity.Task;
 import com.paulfaa.crud.entity.TaskDto;
+import com.paulfaa.crud.repository.TaskRepository;
 import com.paulfaa.crud.service.TaskServiceImpl;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
@@ -12,19 +14,22 @@ import java.util.List;
 
 
 @RestController
-@RequestMapping("/api/tasks")
 public class TaskController {
 
     @Autowired
     private TaskServiceImpl taskService;
 
-    //@Autowired
-    //private TaskRepository taskRepository;
+    @Autowired
+    private TaskRepository taskRepository;
 
     @PostMapping("/tasks")
     public ResponseEntity<TaskDto> create(@RequestBody TaskDto taskDto) {
-        Task createdTask = taskService.saveTask(taskDto.toEntity());
-        return new ResponseEntity<>(createdTask.toDto(), HttpStatus.CREATED);
+        Task task = new Task();
+        task.setStatus(Status.CREATED);
+        task.setDescription(taskDto.getDescription());
+        task.setTitle(taskDto.getTitle());
+        taskService.saveTask(task);
+        return new ResponseEntity<>(task.toDto(), HttpStatus.CREATED);
     }
 
     @GetMapping("/tasks/{id}")
