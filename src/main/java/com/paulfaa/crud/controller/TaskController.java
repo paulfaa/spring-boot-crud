@@ -1,5 +1,6 @@
 package com.paulfaa.crud.controller;
 
+import com.google.common.collect.Lists;
 import com.paulfaa.crud.entity.Status;
 import com.paulfaa.crud.entity.Task;
 import com.paulfaa.crud.entity.TaskDto;
@@ -10,8 +11,8 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.beans.factory.annotation.Autowired;
 
-import java.util.ArrayList;
 import java.util.List;
+import java.util.stream.Collectors;
 
 import static com.paulfaa.crud.util.Util.findStatusByName;
 
@@ -66,10 +67,7 @@ public class TaskController {
     @GetMapping("/tasks")
     public List<TaskDto> getAll() {
         Iterable<Task> tasks = taskService.getAllTasks();
-        List<TaskDto> list = new ArrayList<>();
-        while (tasks.iterator().hasNext()) {
-            list.add(tasks.iterator().next().toDto());
-        }
-        return list;
+        return Lists.newArrayList(tasks.iterator())
+                .stream().map(Task::toDto).collect(Collectors.toList());
     }
 }
