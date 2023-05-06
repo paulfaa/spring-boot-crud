@@ -13,6 +13,8 @@ import org.mockito.junit.jupiter.MockitoExtension;
 import java.util.ArrayList;
 import java.util.Optional;
 
+import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.mockito.Mockito.*;
 
 @ExtendWith(MockitoExtension.class)
@@ -99,18 +101,21 @@ class TaskServiceImplTest {
         Task result = taskService.updateTask(1L, mockTask);
 
         //Assert
-
+        verify(mockTaskRepository, times(1)).save(mockTask);
     }
 
     @Test
     public void updateTaskNotExisting() throws Exception {
         //Arrange
-        when(mockTaskRepository.existsById(any())).thenReturn(false);
+        String expectedMessage = "Task with id 1 does not exist";
 
         //Act
-        Task result = taskService.updateTask(1L, mockTask);
+        Exception exception = assertThrows(Exception.class, () -> {
+            taskService.updateTask(1L, mockTask);
+        });
+        String actualMessage = exception.getMessage();
 
         //Assert
-
+        assertEquals(expectedMessage, actualMessage);
     }
 }
