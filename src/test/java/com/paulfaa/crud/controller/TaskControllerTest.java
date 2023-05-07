@@ -1,8 +1,6 @@
 package com.paulfaa.crud.controller;
 
 import com.google.gson.Gson;
-import com.google.gson.JsonArray;
-import com.google.gson.JsonObject;
 import com.paulfaa.crud.entity.Status;
 import com.paulfaa.crud.entity.Task;
 import com.paulfaa.crud.entity.TaskDto;
