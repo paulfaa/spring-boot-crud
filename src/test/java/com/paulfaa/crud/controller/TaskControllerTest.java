@@ -13,7 +13,6 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
 import org.mockito.InjectMocks;
-import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.junit.jupiter.MockitoExtension;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,11 +20,12 @@ import org.springframework.boot.test.autoconfigure.web.servlet.WebMvcTest;
 import org.springframework.boot.test.mock.mockito.MockBean;
 import org.springframework.http.MediaType;
 import org.springframework.test.web.servlet.MockMvc;
-import org.springframework.test.web.servlet.MvcResult;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Optional;
 
-import static org.junit.jupiter.api.Assertions.*;
+import static org.hamcrest.Matchers.hasSize;
 import static org.mockito.ArgumentMatchers.any;
 import static org.springframework.test.web.servlet.request.MockMvcRequestBuilders.*;
 import static org.springframework.test.web.servlet.result.MockMvcResultMatchers.*;
@@ -38,7 +38,7 @@ class TaskControllerTest {
     TaskRepository mockTaskRepository;
 
     @MockBean
-    TaskServiceImpl taskServiceImpl;
+    TaskServiceImpl taskService;
 
     @Autowired
     MockMvc mockMvc;
@@ -48,9 +48,7 @@ class TaskControllerTest {
 
     Gson gson = new Gson();
 
-    private final TaskDto taskDto1 = new TaskDto("1", "Title", "Description", "CREATED");
     private final Task task1 = new Task(1L, "Title", "Description", Status.CREATED);
-    private final TaskDto taskDto2 = new TaskDto("1", "Updated title", "Updated Description", "APPROVED");
     private final Task task2 = new Task(1L, "Updated title", "Updated Description", Status.APPROVED);
 
     @BeforeEach
@@ -58,37 +56,36 @@ class TaskControllerTest {
     }
 
     @Test
-    public void testPostTaskSuccess() throws Exception {
+    public void testPostTaskSuccess() throws Exception { //id is not getting set automatically by @GeneratedValue in tests
         //Arrange
-        Mockito.when(taskServiceImpl.saveTask(any())).thenReturn(task1);
+        Mockito.when(taskService.saveTask(any())).thenReturn(task1);
 
         //Act
         mockMvc.perform(post("/tasks")
                         .contentType(MediaType.APPLICATION_JSON)
-                        .content(gson.toJson(taskDto1))
+                        .content(gson.toJson(task1.toDto()))
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(jsonPath("$").value("1"));
-                //.andExpect(content().string("1"));
+                .andExpect(content().string("1"));
     }
 
     @Test
     public void testGetTaskSuccess() throws Exception {
         //Arrange
-        Mockito.when(taskServiceImpl.findById(any())).thenReturn(Optional.of(task1));
+        Mockito.when(taskService.findById(any())).thenReturn(Optional.of(task1));
 
         //Act
         mockMvc.perform(get("/tasks/1")
                         .contentType(MediaType.APPLICATION_JSON)
                         .accept(MediaType.APPLICATION_JSON))
                 .andExpect(status().is2xxSuccessful())
-                .andExpect(content().string(gson.toJson(taskDto1)));
+                .andExpect(content().string(gson.toJson(task1.toDto())));
     }
 
     @Test
     public void testGetTaskInvalidId() throws Exception {
         //Arrange
-        Mockito.when(taskServiceImpl.findById(any())).thenReturn(Optional.empty());
+        Mockito.when(taskService.findById(any())).thenReturn(Optional.empty());
 
         //Act
         mockMvc.perform(get("/tasks/1")
@@ -101,7 +98,8 @@ class TaskControllerTest {
     @Test
     public void testPutTaskSuccess() throws Exception {
         //Arrange
-        Mockito.when(taskServiceImpl.updateTask(1L, task2)).thenReturn(task2);
+        Mockito.when(taskService.findById(1L)).thenReturn(Optional.of(task1));
+        Mockito.when(taskService.updateTask(1L, task2)).thenReturn(task2);
         JSONObject jsonObject = new JSONObject ();
         jsonObject.put("title", "Updated Title");
         jsonObject.put("description", "Updated Description");
@@ -136,7 +134,7 @@ class TaskControllerTest {
     @Test
     public void testPutTaskInvalidId() throws Exception {
         //Arrange
-        //Mockito.when(taskServiceImpl.updateTask(1L, task2)).thenReturn(task2);
+        //Mockito.when(taskService.updateTask(1L, task2)).thenReturn(task2);
         JSONObject jsonObject = new JSONObject ();
         jsonObject.put("title", "Updated Title");
         jsonObject.put("description", "Updated Description");
@@ -147,7 +145,63 @@ class TaskControllerTest {
                         .contentType(MediaType.APPLICATION_JSON)
                         .content(gson.toJson(jsonObject))
                         .accept(MediaType.APPLICATION_JSON))
-                .andExpect(status().isBadRequest())
+                .andExpect(status().isNotFound())
                 .andExpect(jsonPath("$").doesNotExist());
+    }
+
+    @Test
+    public void deleteTaskSuccess() throws Exception {
+        //Arrange
+        Mockito.when(taskService.findById(1L)).thenReturn(Optional.of(task1));
+        //Mockito.when(taskService.deleteTask(1L)).thenReturn(void);
+
+        //Act
+        mockMvc.perform(delete("/tasks/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$").doesNotExist());
+    }
+
+    @Test
+    public void deleteTaskInvalidId() throws Exception {
+        //Arrange
+        Mockito.when(taskService.getTaskById(1L)).thenReturn(null);
+
+        //Act
+        mockMvc.perform(delete("/tasks/1")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().isNotFound())
+                .andExpect(jsonPath("$").doesNotExist());
+    }
+
+    @Test
+    public void getAllTasks() throws Exception {
+        //Arrange
+        ArrayList<Task> mockTasks = new ArrayList<>(Arrays.asList(task1, task2));
+        ArrayList<TaskDto> expectedResponse = new ArrayList<>(Arrays.asList(task1.toDto(), task2.toDto()));
+        Mockito.when(taskService.getAllTasks()).thenReturn(mockTasks);
+
+        //Act
+        mockMvc.perform(get("/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(content().string(gson.toJson(expectedResponse)));
+    }
+
+    @Test
+    public void getAllTasksNoTasks() throws Exception {
+        //Arrange
+        ArrayList<Task> emptyList = new ArrayList<>();
+        Mockito.when(taskService.getAllTasks()).thenReturn(emptyList);
+
+        //Act
+        mockMvc.perform(get("/tasks")
+                        .contentType(MediaType.APPLICATION_JSON)
+                        .accept(MediaType.APPLICATION_JSON))
+                .andExpect(status().is2xxSuccessful())
+                .andExpect(jsonPath("$", hasSize(0)));
     }
 }
