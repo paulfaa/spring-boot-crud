@@ -5,7 +5,6 @@ import com.paulfaa.crud.entity.Status;
 import com.paulfaa.crud.entity.Task;
 import com.paulfaa.crud.entity.TaskDto;
 import com.paulfaa.crud.repository.TaskRepository;
-import com.paulfaa.crud.service.TaskServiceImpl;
 import net.minidev.json.JSONObject;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
@@ -35,9 +34,6 @@ class TaskControllerTest {
     @MockBean
     TaskRepository mockTaskRepository;
 
-    @MockBean
-    TaskServiceImpl taskService;
-
     @Autowired
     MockMvc mockMvc;
 
@@ -56,7 +52,7 @@ class TaskControllerTest {
     @Test
     public void testPostTaskSuccess() throws Exception { //id is not getting set automatically by @GeneratedValue in tests
         //Arrange
-        Mockito.when(taskService.saveTask(any())).thenReturn(task1);
+        Mockito.when(mockTaskRepository.save(any())).thenReturn(task1);
 
         //Act
         mockMvc.perform(post("/tasks")
@@ -70,7 +66,7 @@ class TaskControllerTest {
     @Test
     public void testGetTaskSuccess() throws Exception {
         //Arrange
-        Mockito.when(taskService.findById(any())).thenReturn(Optional.of(task1));
+        Mockito.when(mockTaskRepository.findById(any())).thenReturn(Optional.of(task1));
 
         //Act
         mockMvc.perform(get("/tasks/1")
@@ -83,7 +79,7 @@ class TaskControllerTest {
     @Test
     public void testGetTaskInvalidId() throws Exception {
         //Arrange
-        Mockito.when(taskService.findById(any())).thenReturn(Optional.empty());
+        Mockito.when(mockTaskRepository.findById(any())).thenReturn(Optional.empty());
 
         //Act
         mockMvc.perform(get("/tasks/1")
@@ -96,7 +92,7 @@ class TaskControllerTest {
     @Test
     public void testPutTaskSuccess() throws Exception {
         //Arrange
-        Mockito.when(taskService.findById(1L)).thenReturn(Optional.of(task1));
+        Mockito.when(mockTaskRepository.findById(1L)).thenReturn(Optional.of(task1));
         Mockito.when(taskService.updateTask(1L, task2)).thenReturn(task2);
         JSONObject jsonObject = new JSONObject ();
         jsonObject.put("title", "Updated Title");
@@ -150,7 +146,7 @@ class TaskControllerTest {
     @Test
     public void deleteTaskSuccess() throws Exception {
         //Arrange
-        Mockito.when(taskService.findById(1L)).thenReturn(Optional.of(task1));
+        Mockito.when(mockTaskRepository.findById(1L)).thenReturn(Optional.of(task1));
         //Mockito.when(taskService.deleteTask(1L)).thenReturn(void);
 
         //Act
@@ -164,7 +160,7 @@ class TaskControllerTest {
     @Test
     public void deleteTaskInvalidId() throws Exception {
         //Arrange
-        Mockito.when(taskService.getTaskById(1L)).thenReturn(null);
+        Mockito.when(mockTaskRepository.findById(1L)).thenReturn(null);
 
         //Act
         mockMvc.perform(delete("/tasks/1")
@@ -179,7 +175,7 @@ class TaskControllerTest {
         //Arrange
         ArrayList<Task> mockTasks = new ArrayList<>(Arrays.asList(task1, task2));
         ArrayList<TaskDto> expectedResponse = new ArrayList<>(Arrays.asList(task1.toDto(), task2.toDto()));
-        Mockito.when(taskService.getAllTasks()).thenReturn(mockTasks);
+        Mockito.when(mockTaskRepository.findAll()).thenReturn(mockTasks);
 
         //Act
         mockMvc.perform(get("/tasks")
@@ -193,7 +189,7 @@ class TaskControllerTest {
     public void getAllTasksNoTasks() throws Exception {
         //Arrange
         ArrayList<Task> emptyList = new ArrayList<>();
-        Mockito.when(taskService.getAllTasks()).thenReturn(emptyList);
+        Mockito.when(mockTaskRepository.findAll()).thenReturn(emptyList);
 
         //Act
         mockMvc.perform(get("/tasks")

@@ -25,7 +25,7 @@ public class TaskController {
     @PostMapping("/tasks")
     public ResponseEntity<Long> create(@RequestBody TaskDto taskDto) {
         Task task = new Task(taskDto.getTitle());
-        task.setStatus(Status.CREATED);
+        task.setTaskStatus(Status.CREATED);
         task.setDescription(taskDto.getDescription());
         Task savedTask = taskRepository.save(task);
         return new ResponseEntity<>(savedTask.getId(), HttpStatus.OK);
@@ -47,13 +47,14 @@ public class TaskController {
         }
         Optional<Task> optional = taskRepository.findById(id);
         if(optional.isEmpty()){
-            return new ResponseEntity<>(String.format(FAILURE_MESSAGE, id) , HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(String.format(FAILURE_MESSAGE, id) , HttpStatus.NO_CONTENT);
         }
         else{
-            //taskDto.setId(String.valueOf(id));
-            //taskDto.setStatus(taskDto.getStatus().toUpperCase());
-            //taskRepository.save();
-            return new ResponseEntity<>(String.format(SUCCESS_MESSAGE, id), HttpStatus.OK);
+            Task task = optional.get();
+            task.setDescription(taskDto.getDescription());
+            task.setTaskStatus(Status.valueOf(taskDto.getStatus()));
+            Task updatedTask = taskRepository.save(task);
+            return new ResponseEntity<>(String.format(SUCCESS_MESSAGE, updatedTask.getId()), HttpStatus.OK);
         }
     }
 
@@ -61,7 +62,7 @@ public class TaskController {
     public ResponseEntity<Void> delete(@PathVariable long id) {
         Optional<Task> optional = taskRepository.findById(id);
         if(optional.isEmpty()){
-            return new ResponseEntity<>(HttpStatus.NOT_FOUND);
+            return new ResponseEntity<>(HttpStatus.NO_CONTENT);
         }
         else{
             taskRepository.deleteById(id);
